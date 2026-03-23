@@ -48,15 +48,15 @@ Method: GET
 Body: raw > JSON
 #
 Test 1 — Valid ID that exists:
-GET http://localhost:5000/api/products/69c09ec02259995c462a474c
+http://localhost:5000/api/products/69c09ec02259995c462a474c
 Returned: 200 - OK
 #
 Test 2 —  Valid format, but ID doesn't exist:
-GET http://localhost:5000/api/products/111111111111111111111111
+http://localhost:5000/api/products/111111111111111111111111
 Returned: 404 - Product not found
 #
 Test 3 — Invalid format:
-GET http://localhost:5000/api/products/banana
+http://localhost:5000/api/products/banana
 Returned: 400 - Invalid ID format'
 */
 
@@ -137,6 +137,93 @@ Returned: 400 - Invalid ID format
 */
 
 
+// Route GET /api/products - Get all products with filtering, sorting, and pagination
+router.get('/', async (req, res) => {
+
+    try {
+         const { category, minPrice, maxPrice, sortBy, page, limit } = req.query;
+
+         //1)----- FILTERING ------
+         const filter = {};
+        if (category) filter.category = category;
+        if (minPrice || maxPrice) {
+            filter.price = {};
+            if (minPrice) filter.price.$gte = parseFloat(minPrice);
+            if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
+        }
+
+         // 2) ------ SORTING ----------
+          const sort = {};
+          if (sortBy === 'price_asc') sort.price = 1;   // ascending
+          if (sortBy === 'price_desc') sort.price = -1; // descending
+
+          // 3) --- PAGINATION ---
+          const pageNum = parseInt(page) || 1;
+          const limitNum = parseInt(limit) || 10;
+          const skip = (pageNum - 1) * limitNum;
+          const products = await Product.find(filter)
+            .sort(sort)
+            .skip(skip)
+            .limit(limitNum);
+        
+        res.status(200).json(products);
+  
+    } catch(err){
+         res.status(500).json({ message: err.message });
+    }
+})
+
+/*
+Testing parameters:
+Method: GET - filtering, sorting, and pagination
+Body: raw > JSON
+#
+Test 1 — Get ALL products (no filters):
+http://localhost:5000/api/products
+Returns: all 5 products
+200 - OK
+#
+Test 2 — Filter by category:
+http://localhost:5000/api/products?category=Electronics
+Returns: 2 products (Wireless Headphones and Smart Watch)
+200 - OK
+#
+Test 3 — Filter by price range:
+http://localhost:5000/api/products?minPrice=50&maxPrice=150
+Returns: 2 products (Wireless Headphones and Running Shoes)
+200 - OK
+#
+Test 4 — Sort price ascending:
+http://localhost:5000/api/products?sortBy=price_asc
+Returns: Yoga Mat(29.99) > Coffee Maker(49.99) > Running Shoes(79.99) > Headphones(99.99) > Smart Watch(199.99)
+200 - OK
+#
+Test 5 — Sort price descending:
+http://localhost:5000/api/products?sortBy=price_desc
+Returns: Smart Watch(199.99) > Headphones(99.99) > Running Shoes(79.99) > Coffee Maker(49.99) > Yoga Mat(29.99)
+200 - OK
+#
+Test 6 — Pagination:
+http://localhost:5000/api/products?page=1&limit=2
+Returns: first 2 of 5 totals products only
+200 - OK
+#
+Test 7 — Combine everything:
+http://localhost:5000/api/products?category=Electronics&sortBy=price_asc&page=1&limit=2
+
+*/
+
+
+// Ib)
+module.exports = router; // exports router so 'server.js' can use it
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/* An attempt at task 5 - it fetch all products but without any filtering, sorting, and pagination
 // Route GET /api/products/ - fetch ALL products
 router.get('/', async (req, res) => { // creates a GET route...
   //const allProducts = await Product.find()
@@ -153,67 +240,4 @@ router.get('/', async (req, res) => { // creates a GET route...
 
   }
 })
-
-
-
-
-
-
-/*
-
-*/
-
-
-
-
-
-
-
-
-
-
-// Ib)
-module.exports = router; // exports router so 'server.js' can use it
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-/*
-Task 4: API Routes and Logic
-In routes/productRoutes.js, use express.Router() to define your API endpoints. The logic for each route should be handled directly within the route file for this assessment.
-Implement the following endpoints. All endpoints must handle potential errors with try...catch blocks and return appropriate status codes and JSON responses.
-1.	POST /api/products (Create a Product)
-o	Creates a new product based on the req.body.
-o	Responds with the newly created product and a 201 status code.
-o	If validation fails, it should return a 400 status code with a descriptive error message.
-
-2.	GET /api/products/:id (Read a Single Product)
-o	Retrieves a single product by its _id.
-o	If the product is found, responds with the product object.
-o	If no product is found, responds with a 404 status code.
-
-3.	PUT /api/products/:id (Update a Product)
-o	Updates a product by its _id with the data from req.body.
-o	Responds with the updated product data (use the { new: true } option).
-o	If no product is found to update, responds with a 404 status code.
-
-4.	DELETE /api/products/:id (Delete a Product)
-o	Deletes a product by its _id.
-o	If successful, responds with a success message.
-o	If no product is found to delete, responds with a 404 status code.
-
-5.	GET /api/products (Read All Products with Advanced Querying)
-o	This is the most complex endpoint. It should retrieve all products but also support the following optional query parameters: 
-	category: Filter products by a specific category.
-	minPrice: Filter products with a price greater than or equal to this value.
-	maxPrice: Filter products with a price less than or equal to this value.
-	sortBy: Sort results. For example, price_asc for ascending price or price_desc for descending price.
-	page & limit: For pagination (defaulting to page 1, limit 10).
-o	Dynamically build the Mongoose query based on which query parameters are provided.
-o	Respond with an array of the resulting products.
-
-
 */
