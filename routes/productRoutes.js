@@ -49,15 +49,15 @@ Body: raw > JSON
 #
 Test 1 — Valid ID that exists:
 GET http://localhost:5000/api/products/69c09ec02259995c462a474c
-Returned: 200 
+Returned: 200 - OK
 #
 Test 2 —  Valid format, but ID doesn't exist:
 GET http://localhost:5000/api/products/111111111111111111111111
-Returned: 404 
+Returned: 404 - Product not found
 #
 Test 3 — Invalid format:
 GET http://localhost:5000/api/products/banana
-Returned: 400
+Returned: 400 - Invalid ID format'
 */
 
 // Route Update / PUT (/api/books/:id) for 1 single product document
@@ -71,9 +71,9 @@ router.put('/:id', async (req, res) => {   // creates a PUT route...
       //{returnDocument: 'after'}
     );
     if (!updatedProduct) { // however IF the 'updatedBook'...
-      return res.status(404).json({ message: 'Product not found' }); //...THEN  404 error code is generated (404 = Not Found)...
+      return res.status(404).json({ message: 'Product not found' }); //...THEN  404 error code is generated...
     }
-    res.status(200).json(updatedProduct);  //...ELSE IF 'updatedProduct' is valid THEN  200  code is generated (200 = OK)...
+    res.status(200).json(updatedProduct);  //...ELSE IF 'updatedProduct' is valid THEN  200  code is generated...
   } catch (error) {  //ELSE....
     res.status(400).json({ message: error.message });  // 400  error code is generated
   }
@@ -90,23 +90,22 @@ Body: raw > JSON
 #
 Test 1 — Successful product update:
 http://localhost:5000/api/products/69c09ec02259995c462a474c
-Returned: 200 
+Returned: 200 - OK
 #
 Test 2 — Product not found:
 http://localhost:5000/api/products/111111111111111111111111
-Returned: 404 
+Returned: 404 - Product not found
 #
 Test 3 — Validation:
 {
     "price": -10
 }
 http://localhost:5000/api/products/69c09ec02259995c462a474c
-Returned: 400 
-"Validation failed: price: Price must be greater than 0"
+Returned: 400 - Validation failed: price: Price must be greater than 0
 */
 
 
-// DELETE /api/products/:id - Delete a product
+// Route DELETE /api/products/:id - Delete a product
 router.delete('/:id', async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
@@ -126,19 +125,23 @@ Body: raw > JSON
 #
 Test 1 — Successful product delete:
 http://localhost:5000/api/products/69c09ec02259995c462a474c
-Returned: 200 OK
+Returned: 200 - Product deleted!
 #
 Test 2 — Product not found:
 http://localhost:5000/api/products/111111111111111111111111
-Returned: 404 Not Found
+Returned: 404 - No product found with this id!
 #
 Test 3 — Invalid format:
 http://localhost:5000/api/products/banana
-Returned: 400 
+Returned: 400 - Invalid ID format
 */
 
-// Ib)
-module.exports = router; // exports router so 'server.js' can use it
+
+// Route GET /api/products/ - fetch ALL products
+router.get('/', async (req, res) => {
+  const allProducts = await Product.find()
+  console.log('Found product:', allProducts )
+})
 
 
 
@@ -146,65 +149,38 @@ module.exports = router; // exports router so 'server.js' can use it
 
 
 /*
-// Apply authMiddleware to all routes in this file
-router.use(authMiddleware);
- 
-// GET /api/notes - Get all notes for the logged-in user
-// THIS IS THE ROUTE THAT CURRENTLY HAS THE FLAW
-router.get('/', async (req, res) => {
-  // This currently finds all notes in the database.
-  // It should only find notes owned by the logged in user.
-  try {
-    const notes = await Note.find({});
-    res.json(notes);
+  try{
+
+
   } catch (err) {
-    res.status(500).json(err);
+
+
+
+
   }
-});
- 
-// POST /api/notes - Create a new note
-router.post('/', async (req, res) => {
-  try {
-    const note = await Note.create({
-      ...req.body,
-      // The user ID needs to be added here
-    });
-    res.status(201).json(note);
-  } catch (err) {
-    res.status(400).json(err);
-  }
-});
- 
-// PUT /api/notes/:id - Update a note
-router.put('/:id', async (req, res) => {
-  try {
-    // This needs an authorization check
-    const note = await Note.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!note) {
-      return res.status(404).json({ message: 'No note found with this id!' });
-    }
-    res.json(note);
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
- 
-// DELETE /api/notes/:id - Delete a note
-router.delete('/:id', async (req, res) => {
-  try {
-    // This needs an authorization check
-    const note = await Note.findByIdAndDelete(req.params.id);
-    if (!note) {
-      return res.status(404).json({ message: 'No note found with this id!' });
-    }
-    res.json({ message: 'Note deleted!' });
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
- 
-export default router
+
+
+
+
+})
 */
+
+
+
+
+
+
+
+
+
+
+// Ib)
+module.exports = router; // exports router so 'server.js' can use it
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 /*
