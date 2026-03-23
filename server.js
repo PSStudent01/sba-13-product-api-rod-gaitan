@@ -18,6 +18,9 @@ app.use(express.json()); // this middleware tells 'Express' to automatically par
 // Connect to database
 connectDB();  // Calls the function 'connectDB()' in 'connection.js' to establish a DB connection when the server starts.
 
+// III) This code block ensures that every route defined in 'productRoutes.js' automatically starts with /api/products.
+const productRoutes = require('./routes/productRoutes');
+app.use('/api/products', productRoutes);
 
 const PORT = process.env.PORT || 5000;  // checks if there's a PORT variable defined in the .env file. IF there is one, it'll use it. ELSE, if there isn't one, it'll use default 5000.
 app.listen(PORT, () => { // this starts the server and starts listening for incoming API requests on that port. 
