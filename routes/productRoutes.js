@@ -138,9 +138,20 @@ Returned: 400 - Invalid ID format
 
 
 // Route GET /api/products/ - fetch ALL products
-router.get('/', async (req, res) => {
-  const allProducts = await Product.find()
-  console.log('Found product:', allProducts )
+router.get('/', async (req, res) => { // creates a GET route...
+  //const allProducts = await Product.find()
+  //console.log('Found product:', allProducts )
+  try{      //...while gracefully handling errors...
+     const allProducts = await Product.find(); //...where IF it 'finds' the 'Product' MODEL successfully..
+      if (!allProducts) {      //...BUT NOT one product is valid/found..
+            return res.status(404).json({ message: 'Products not found' }); //...it returns a 404 error code (404 = 'Products not found') 
+        }
+        res.status(200).json(allProducts); //...ELSE IF products valid/found, it returns a 200 code (200 = OK) and lists ALL products found in the DB!!
+    } catch{                         
+        //res.status(400).json({ message: err.message });
+        res.status(400).json({ message: 'Invalid Request' })  //...ELSE returns a 400 error code (400 = 'Invalid Request') 
+
+  }
 })
 
 
@@ -149,20 +160,7 @@ router.get('/', async (req, res) => {
 
 
 /*
-  try{
 
-
-  } catch (err) {
-
-
-
-
-  }
-
-
-
-
-})
 */
 
 
