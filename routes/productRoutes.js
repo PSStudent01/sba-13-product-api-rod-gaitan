@@ -138,38 +138,43 @@ Returned: 400 - Invalid ID format
 
 
 // Route GET /api/products - Get all products with filtering, sorting, and pagination
-router.get('/', async (req, res) => {
+router.get('/', async (req, res) => { //this line registers a GET handler on /api/products.
 
     try {
-         const { category, minPrice, maxPrice, sortBy, page, limit } = req.query;
+         const { category, minPrice, maxPrice, sortBy, page, limit } = req.query; // it makes quiries like "/api/products?category=shoes&minPrice=10&page=2" possible
 
          //1)----- FILTERING ------
-         const filter = {};
-        if (category) filter.category = category;
-        if (minPrice || maxPrice) {
-            filter.price = {};
-            if (minPrice) filter.price.$gte = parseFloat(minPrice);
-            if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
+         const filter = {}; //this filters by matching everything.
+        if (category) filter.category = category; // if a category value is provided/valid, this adds it to the filter
+        if (minPrice || maxPrice) { // If either 'minPrice' or 'maxPrice' exists...
+            filter.price = {};  // create a price object on the filter.
+            if (minPrice) filter.price.$gte = parseFloat(minPrice); // IF a minimum price was provided..
+                                                                    // THEN convert it from a string to a number ("10" → 10)
+                                                                    // AND  store it as the LOWEST allowed price
+                                                                    // "hey, DONT gimme anything cheaper than teh current value"
+            if (maxPrice) filter.price.$lte = parseFloat(maxPrice); // IF a maximum price was provided..
+                                                                    // THEN convert it from a string to a number ("10" → 10)
+                                                                    // AND  store it as the HIGHEST allowed price
+                                                                    // "hey, DONT gimme anything more expenisve than the current value"
         }
-
          // 2) ------ SORTING ----------
-          const sort = {};
-          if (sortBy === 'price_asc') sort.price = 1;   // ascending
-          if (sortBy === 'price_desc') sort.price = -1; // descending
+          const sort = {}; // builds an object
+          if (sortBy === 'price_asc') sort.price = 1;   // sort results in 'ascending' order
+          if (sortBy === 'price_desc') sort.price = -1; // sort results in 'descending' order
 
           // 3) --- PAGINATION ---
-          const pageNum = parseInt(page) || 1;
-          const limitNum = parseInt(limit) || 10;
-          const skip = (pageNum - 1) * limitNum;
-          const products = await Product.find(filter)
-            .sort(sort)
-            .skip(skip)
-            .limit(limitNum);
+          const pageNum = parseInt(page) || 1; // 'page' value is the starting page number and comes from the URL's endpoint (ex, ?page=3). IF no page is provided, THEN it defaults to page 1
+          const limitNum = parseInt(limit) || 10; // 'limit' value is the max results per page andcomes from the URL's endpoint (ex, ?limit=8). IF no page is provided, THEN it defaults to page 10 result sper page
+          const skip = (pageNum - 1) * limitNum; // Page 1 skips 0 documents, page 2 skips 10 documents (from page 1), page 3 skips 20 documents (from pages 1,2), etc.
+          const products = await Product.find(filter) // applies the filter
+            .sort(sort) //sorts results
+            .skip(skip) // skips to the correct page
+            .limit(limitNum); // and limits the number of results returned.
         
-        res.status(200).json(products);
+        res.status(200).json(products); // IF everything checks out, it sends the matching products back in 'JSON' format with a '200 OK' status.
   
     } catch(err){
-         res.status(500).json({ message: err.message });
+         res.status(500).json({ message: err.message }); // If anything goes worng, this sends a 500 Internal Server Error with the error message w/out crashing the server.
     }
 })
 
